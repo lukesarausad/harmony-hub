@@ -7,6 +7,7 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
+import cors from 'cors';
 
 declare global {
   namespace Express {
@@ -43,11 +44,17 @@ export function setupAuth(app: Express) {
     store: storage.sessionStore,
     cookie: {
       secure: true,
+      // secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
   };
+
+  app.use(cors({
+    origin: 'https://harmonyhub.sarausad.repl.co',
+    credentials: true
+  }));
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
