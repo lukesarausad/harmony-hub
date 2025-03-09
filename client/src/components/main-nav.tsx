@@ -8,7 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Music2, User } from "lucide-react";
+import { Music2, User, Compass } from "lucide-react";
+import { NotificationsDropdown } from "./notifications-dropdown";
 
 export function MainNav() {
   const { user, logoutMutation } = useAuth();
@@ -21,7 +22,16 @@ export function MainNav() {
           <span>Harmony Hub</span>
         </Link>
 
+        <div className="flex items-center gap-4 ml-8">
+          <Link href="/explore" className="flex items-center gap-2 font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <Compass className="h-4 w-4" />
+            Explore
+          </Link>
+        </div>
+
         <nav className="ml-auto flex items-center gap-4">
+          <NotificationsDropdown />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
