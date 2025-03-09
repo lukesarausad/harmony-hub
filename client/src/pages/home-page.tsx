@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Layout } from "@/components/layout";
 import { PlaylistCard } from "@/components/playlist-card";
 import { ActivityFeed } from "@/components/activity-feed";
+import { RecommendedPlaylists } from "@/components/recommended-playlists";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -56,7 +57,7 @@ export default function HomePage() {
 
   return (
     <Layout>
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px_300px] gap-8">
         {/* Playlists Section */}
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
@@ -144,10 +145,19 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Activity Feed */}
-        <div className="lg:w-80">
-          <h2 className="text-2xl font-bold mb-6">Activity Feed</h2>
-          <ActivityFeed userId={user!.id} />
+        {/* Right Sidebar */}
+        <div className="space-y-8">
+          {/* Recommendations */}
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Recommended</h2>
+            <RecommendedPlaylists />
+          </div>
+
+          {/* Activity Feed */}
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Activity Feed</h2>
+            <ActivityFeed userId={user!.id} />
+          </div>
         </div>
       </div>
     </Layout>

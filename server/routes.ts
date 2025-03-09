@@ -16,7 +16,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/playlists", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const validated = insertPlaylistSchema.parse(req.body);
     const playlist = await storage.createPlaylist({
       ...validated,
@@ -27,7 +26,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/playlists/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const playlist = await storage.getPlaylist(Number(req.params.id));
     if (!playlist) return res.sendStatus(404);
     res.json(playlist);
@@ -35,11 +33,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/playlists/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const playlist = await storage.getPlaylist(Number(req.params.id));
     if (!playlist) return res.sendStatus(404);
     if (playlist.userId !== req.user.id) return res.sendStatus(403);
-    
     const validated = insertPlaylistSchema.parse(req.body);
     const updated = await storage.updatePlaylist(playlist.id, validated);
     res.json(updated);
@@ -47,11 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/playlists/:id", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const playlist = await storage.getPlaylist(Number(req.params.id));
     if (!playlist) return res.sendStatus(404);
     if (playlist.userId !== req.user.id) return res.sendStatus(403);
-    
     await storage.deletePlaylist(playlist.id);
     res.sendStatus(204);
   });
@@ -65,7 +59,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/playlists/:id/comments", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const validated = insertCommentSchema.parse(req.body);
     const comment = await storage.createComment({
       ...validated,
@@ -78,17 +71,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Follows
   app.post("/api/users/:id/follow", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     const followedId = Number(req.params.id);
     if (followedId === req.user.id) return res.status(400).send("Cannot follow yourself");
-    
     const follow = await storage.followUser(req.user.id, followedId);
     res.status(201).json(follow);
   });
 
   app.delete("/api/users/:id/follow", async (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    
     await storage.unfollowUser(req.user.id, Number(req.params.id));
     res.sendStatus(204);
   });
@@ -103,6 +93,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     const following = await storage.getFollowing(Number(req.params.id));
     res.json(following);
+  });
+
+  // Recommendations
+  app.get("/api/recommendations", async (req, res) => {
+    if (!req.isAuthenticated()) return res.sendStatus(401);
+
+    // Get user's followed users' playlists
+    const following = await storage.getFollowing(req.user.id);
+    const followedPlaylists = await Promise.all(
+      following.map(async (user) => {
+        const playlists = await storage.getUserPlaylists(user.id);
+        return playlists.map(playlist => ({
+          ...playlist,
+          reason: `From ${user.username} who you follow`
+        }));
+      })
+    );
+
+    // Flatten and sort by most recent
+    const recommendations = followedPlaylists
+      .flat()
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 6);
+
+    res.json(recommendations);
   });
 
   const httpServer = createServer(app);

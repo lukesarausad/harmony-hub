@@ -18,6 +18,18 @@ export const playlists = pgTable("playlists", {
   userId: integer("user_id").notNull(),
   spotifyId: text("spotify_id"),
   tracks: jsonb("tracks").notNull(),
+  genre: text("genre"),
+  tags: text("tags").array(),
+  likeCount: integer("like_count").default(0),
+});
+
+export const recommendations = pgTable("recommendations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  playlistId: integer("playlist_id").notNull(),
+  score: integer("score").notNull(),
+  reason: text("reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const follows = pgTable("follows", {
@@ -43,6 +55,8 @@ export const insertPlaylistSchema = createInsertSchema(playlists).pick({
   name: true,
   description: true,
   tracks: true,
+  genre: true,
+  tags: true,
 });
 
 export const insertCommentSchema = createInsertSchema(comments).pick({
@@ -55,3 +69,4 @@ export type User = typeof users.$inferSelect;
 export type Playlist = typeof playlists.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type Follow = typeof follows.$inferSelect;
+export type Recommendation = typeof recommendations.$inferSelect;
