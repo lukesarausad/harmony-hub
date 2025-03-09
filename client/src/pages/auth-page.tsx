@@ -66,7 +66,11 @@ export default function AuthPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => window.location.href = "/api/auth/spotify"}
+                onClick={() => {
+                  // Store the current URL to handle redirect after auth
+                  sessionStorage.setItem("returnTo", window.location.pathname);
+                  window.location.href = "/api/auth/spotify";
+                }}
               >
                 <SiSpotify className="mr-2 h-4 w-4" />
                 Continue with Spotify

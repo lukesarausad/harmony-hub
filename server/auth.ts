@@ -60,15 +60,23 @@ export function setupAuth(app: Express) {
       {
         clientID: process.env.SPOTIFY_CLIENT_ID!,
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-        callbackURL: "http://localhost:5000/api/auth/spotify/callback",
+        callbackURL: process.env.REPL_SLUG
+          ? `https://${process.env.REPL_SLUG}.replit.dev/api/auth/spotify/callback`
+          : "http://localhost:5000/api/auth/spotify/callback",
       },
       async (accessToken, refreshToken, expires_in, profile, done) => {
         try {
+          console.log("Spotify auth callback received", {
+            profileId: profile.id,
+            displayName: profile.displayName,
+          });
+
           // Check if we already have a user with this Spotify ID
           const users = await storage.getAllUsers();
-          const existingUser = users.find(u => u.spotifyId === profile.id);
+          const existingUser = users.find((u) => u.spotifyId === profile.id);
 
           if (existingUser) {
+            console.log("Updating existing user with new Spotify tokens");
             // Update tokens
             const updatedUser = await storage.updateUser(existingUser.id, {
               spotifyToken: accessToken,
@@ -77,22 +85,22 @@ export function setupAuth(app: Express) {
             return done(null, updatedUser);
           }
 
-          // If no user is logged in, create a new user
-          if (!existingUser) {
-            const newUser = await storage.createUser({
-              username: profile.displayName || profile.id,
-              password: await hashPassword(randomBytes(16).toString("hex")),
-              spotifyId: profile.id,
-              spotifyToken: accessToken,
-              spotifyRefreshToken: refreshToken,
-            });
-            return done(null, newUser);
-          }
+          console.log("Creating new user from Spotify profile");
+          // Create a new user
+          const newUser = await storage.createUser({
+            username: profile.displayName || profile.id,
+            password: await hashPassword(randomBytes(16).toString("hex")),
+            spotifyId: profile.id,
+            spotifyToken: accessToken,
+            spotifyRefreshToken: refreshToken,
+          });
+          return done(null, newUser);
         } catch (err) {
+          console.error("Error in Spotify auth callback:", err);
           return done(err as Error);
         }
-      }
-    )
+      },
+    ),
   );
 
   passport.serializeUser((user, done) => done(null, user.id));
@@ -131,16 +139,31 @@ export function setupAuth(app: Express) {
   });
 
   // Spotify auth routes
-  app.get("/api/auth/spotify", passport.authenticate("spotify", {
-    scope: ["user-read-email", "playlist-read-private", "playlist-modify-public", "playlist-modify-private"]
-  }));
+  app.get("/api/auth/spotify", (req, res, next) => {
+    console.log("Initiating Spotify OAuth flow");
+    passport.authenticate("spotify", {
+      scope: [
+        "user-read-email",
+        "playlist-read-private",
+        "playlist-modify-public",
+        "playlist-modify-private",
+      ],
+    })(req, res, next);
+  });
 
   app.get(
     "/api/auth/spotify/callback",
-    passport.authenticate("spotify", { failureRedirect: "/auth" }),
+    (req, res, next) => {
+      console.log("Received Spotify callback");
+      passport.authenticate("spotify", {
+        failureRedirect: "/auth",
+        failureMessage: true,
+      })(req, res, next);
+    },
     (req, res) => {
+      console.log("Spotify authentication successful, redirecting to home");
       res.redirect("/");
-    }
+    },
   );
 
   app.get("/api/user", (req, res) => {
