@@ -1,0 +1,127 @@
+# Harmony Hub: Cross-Platform Music Collaboration App
+
+## Project Overview
+Build a web application that allows users to create, share, and collaborate on music playlists across different streaming platforms (Spotify, Apple Music, YouTube Music, etc.). The app will serve as a social hub for music enthusiasts who use different streaming services but want to share and discover music together.
+
+## Core Features
+
+### MVP (Minimum Viable Product)
+1. **User Authentication**
+   - Sign up/login system
+   - Connection to multiple streaming services (OAuth integration)
+   - Profile management
+
+2. **Playlist Management**
+   - Create new collaborative playlists
+   - Add songs from different streaming platforms
+   - View and edit existing playlists
+   - Handle cross-platform song availability
+
+3. **Social Features**
+   - Add friends/follow other users
+   - Activity feed showing recent playlist changes
+   - Comments and reactions on playlists and songs
+
+### Future Enhancements
+1. Real-time collaborative editing
+2. Music taste compatibility metrics
+3. Themed playlist challenges
+4. Advanced recommendation system
+
+## Technical Stack
+
+### Frontend
+- **Framework**: React.js with hooks
+- **State Management**: Redux or Context API
+- **Styling**: Tailwind CSS
+- **UI Components**: Material-UI or Chakra UI
+- **API Calls**: Axios or Fetch API
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Database**: MongoDB (for user data, playlists)
+- **Authentication**: JWT, Passport.js for OAuth
+- **API Integration**: Spotify Web API, Apple Music API, YouTube Music API
+
+### Optional
+- **Real-time**: Socket.io for collaborative features
+- **Deployment**: Vercel, Netlify, or Heroku
+
+## Implementation Plan
+
+### Phase 1: Setup and Authentication
+1. Set up project structure (frontend and backend)
+2. Implement basic authentication (signup, login)
+3. Add OAuth integration for Spotify (as the first platform)
+4. Create user profiles and settings
+
+### Phase 2: Core Playlist Functionality
+1. Create data models for playlists and tracks
+2. Implement playlist CRUD operations
+3. Build UI for playlist creation and viewing
+4. Add song search functionality using Spotify API
+
+### Phase 3: Collaboration Features
+1. Implement friend/follow system
+2. Create activity feed
+3. Add commenting and reaction features
+4. Build initial version of the dashboard
+
+### Phase 4: Cross-Platform Integration
+1. Add Apple Music API integration
+2. Implement cross-platform song matching
+3. Handle platform-specific limitations
+4. Test and refine the user experience
+
+## UI Implementation Guidelines
+
+### Dashboard/Home Feed
+- Clean, card-based design for playlists
+- Activity indicators for recent changes
+- Quick filters for different views
+- Music player component that works across platforms
+
+### Playlist View
+- Left panel: Track listing with platform indicators
+- Right panel: Collaboration activity and comments
+- Prominent album artwork display
+- Clear visual cues for platform compatibility
+
+### Profile Pages
+- Music taste visualization
+- Activity timeline
+- Showcase for favorite playlists
+- Collaboration statistics
+
+## API Integration Notes
+
+### Spotify Web API
+- Documentation: https://developer.spotify.com/documentation/web-api/
+- Key endpoints:
+  - Authentication: `/authorize`, `/token`
+  - Playlists: `/v1/playlists`, `/v1/me/playlists`
+  - Tracks: `/v1/tracks`, `/v1/search`
+
+### Apple Music API
+- Documentation: https://developer.apple.com/documentation/applemusicapi/
+- MusicKit JS for web integration
+- JWT-based authentication
+
+### Data Modeling Considerations
+- Handle different track identifiers across platforms
+- Store mapping between equivalent tracks on different services
+- Track availability metadata for each platform
+
+## Additional Resources
+- Spotify Developer Dashboard: https://developer.spotify.com/dashboard/
+- Apple Developer Program: https://developer.apple.com/programs/
+- YouTube Data API: https://developers.google.com/youtube/v3
+
+## Development Tips
+1. Start with a single platform (Spotify) to build core functionality
+2. Use mock data initially for cross-platform features
+3. Focus on responsive design from the beginning
+4. Implement proper error handling for API limitations
+5. Consider rate limits and caching strategies
+6. Plan for offline functionality where possible
