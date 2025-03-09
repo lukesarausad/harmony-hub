@@ -74,12 +74,16 @@ export function setupAuth(app: Express) {
   );
 
   // Spotify Strategy
+  const callbackURL = process.env.NODE_ENV === 'production'
+    ? "https://harmonyhub.sarausad.repl.co/api/auth/spotify/callback"
+    : "http://localhost:5000/api/auth/spotify/callback";
+
   passport.use(
     new SpotifyStrategy(
       {
         clientID: process.env.SPOTIFY_CLIENT_ID!,
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-        callbackURL: "https://harmonyhub.sarausad.repl.co/api/auth/spotify/callback",
+        callbackURL,
       },
       async (accessToken, refreshToken, expires_in, profile, done) => {
         try {

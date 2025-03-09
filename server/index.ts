@@ -5,9 +5,11 @@ import cors from 'cors';
 
 const app = express();
 
-// Configure CORS before other middleware
+// Configure CORS for local development
 app.use(cors({
-  origin: 'https://harmonyhub.sarausad.repl.co',
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://harmonyhub.sarausad.repl.co'
+    : 'http://localhost:5000',
   credentials: true
 }));
 
@@ -55,23 +57,20 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client
   const port = 5000;
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    const localUrl = `http://localhost:${port}`;
+    log(`Server running at:`);
+    log(`- Local: ${localUrl}`);
   });
 })();
