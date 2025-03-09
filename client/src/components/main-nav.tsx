@@ -14,7 +14,7 @@ export function MainNav() {
   const { user, logoutMutation } = useAuth();
 
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 flex h-14 items-center">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Music2 className="h-6 w-6" />
@@ -24,8 +24,8 @@ export function MainNav() {
         <nav className="ml-auto flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Avatar>
+              <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
                   <AvatarFallback>
                     {user?.username.charAt(0).toUpperCase()}
                   </AvatarFallback>
@@ -34,7 +34,7 @@ export function MainNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem asChild>
-                <Link href={`/profile/${user?.id}`}>
+                <Link href={`/profile/${user?.id}`} className="flex items-center">
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </Link>
