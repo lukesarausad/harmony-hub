@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import { MainNav } from "@/components/main-nav";
+import { Layout } from "@/components/layout";
 import { PlaylistCard } from "@/components/playlist-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams } from "wouter";
@@ -51,64 +51,60 @@ export default function ProfilePage() {
   const displayUser = userId === currentUser?.id ? currentUser : user;
 
   return (
-    <div className="min-h-screen bg-background">
-      <MainNav />
-      
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">
-                {displayUser?.username}'s Profile
-              </h1>
-              <div className="flex gap-4 text-muted-foreground">
-                <span>{followers?.length || 0} followers</span>
-                <span>{following?.length || 0} following</span>
-              </div>
+    <Layout>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {displayUser?.username}'s Profile
+            </h1>
+            <div className="flex gap-4 text-muted-foreground">
+              <span>{followers?.length || 0} followers</span>
+              <span>{following?.length || 0} following</span>
             </div>
-
-            {userId !== currentUser?.id && (
-              <Button
-                variant={isFollowing ? "destructive" : "default"}
-                onClick={() =>
-                  isFollowing
-                    ? unfollowMutation.mutate()
-                    : followMutation.mutate()
-                }
-                disabled={followMutation.isPending || unfollowMutation.isPending}
-              >
-                {followMutation.isPending || unfollowMutation.isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : isFollowing ? (
-                  <UserMinus className="mr-2 h-4 w-4" />
-                ) : (
-                  <UserPlus className="mr-2 h-4 w-4" />
-                )}
-                {isFollowing ? "Unfollow" : "Follow"}
-              </Button>
-            )}
           </div>
-        </div>
 
-        <section>
-          <h2 className="text-2xl font-bold mb-6">Playlists</h2>
-          {playlistsLoading ? (
-            <div className="flex items-center justify-center h-40">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : playlists?.length ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {playlists.map((playlist) => (
-                <PlaylistCard key={playlist.id} playlist={playlist} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center p-8 border rounded-lg">
-              <p className="text-muted-foreground">No playlists found</p>
-            </div>
+          {userId !== currentUser?.id && (
+            <Button
+              variant={isFollowing ? "destructive" : "default"}
+              onClick={() =>
+                isFollowing
+                  ? unfollowMutation.mutate()
+                  : followMutation.mutate()
+              }
+              disabled={followMutation.isPending || unfollowMutation.isPending}
+            >
+              {followMutation.isPending || unfollowMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : isFollowing ? (
+                <UserMinus className="mr-2 h-4 w-4" />
+              ) : (
+                <UserPlus className="mr-2 h-4 w-4" />
+              )}
+              {isFollowing ? "Unfollow" : "Follow"}
+            </Button>
           )}
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+
+      <section>
+        <h2 className="text-2xl font-bold mb-6">Playlists</h2>
+        {playlistsLoading ? (
+          <div className="flex items-center justify-center h-40">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : playlists?.length ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {playlists.map((playlist) => (
+              <PlaylistCard key={playlist.id} playlist={playlist} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center p-8 border rounded-lg">
+            <p className="text-muted-foreground">No playlists found</p>
+          </div>
+        )}
+      </section>
+    </Layout>
   );
 }
