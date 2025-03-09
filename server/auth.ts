@@ -30,11 +30,23 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  if (!process.env.SESSION_SECRET) {
+    const secret = randomBytes(32).toString('hex');
+    process.env.SESSION_SECRET = secret;
+    console.log("Generated new session secret");
+  }
+
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      secure: true,
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
   };
 
   app.set("trust proxy", 1);
@@ -101,10 +113,20 @@ export function setupAuth(app: Express) {
     ),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log("Serializing user:", user.id);
+    done(null, user.id);
+  });
+
   passport.deserializeUser(async (id: number, done) => {
-    const user = await storage.getUser(id);
-    done(null, user);
+    try {
+      console.log("Deserializing user:", id);
+      const user = await storage.getUser(id);
+      done(null, user);
+    } catch (err) {
+      console.error("Error deserializing user:", err);
+      done(err);
+    }
   });
 
   // Local auth routes
@@ -146,13 +168,18 @@ export function setupAuth(app: Express) {
         "playlist-modify-public",
         "playlist-modify-private",
       ],
+      showDialog: true, // Added showDialog: true
     })(req, res, next);
   });
 
   app.get(
     "/api/auth/spotify/callback",
     (req, res, next) => {
-      console.log("Received Spotify callback");
+      console.log("Received Spotify callback", {
+        query: req.query,
+        session: req.session,
+      });
+
       passport.authenticate("spotify", {
         failureRedirect: "/auth",
         failureMessage: true,
