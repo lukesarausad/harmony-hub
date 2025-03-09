@@ -3,7 +3,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema, type InsertUser } from "@shared/schema";
 import { useLocation } from "wouter";
-import { Music4 } from "lucide-react";
+import { Music4, LogIn } from "lucide-react";
+import { SiSpotify } from "react-icons/si";
 
 import {
   Card,
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -60,12 +62,34 @@ export default function AuthPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => window.location.href = "/api/auth/spotify"}
+              >
+                <SiSpotify className="mr-2 h-4 w-4" />
+                Continue with Spotify
+              </Button>
+            </div>
+
+            <div className="relative mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
             <Tabs defaultValue="login">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Login</TabsTrigger>
                 <TabsTrigger value="register">Register</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form
@@ -105,7 +129,12 @@ export default function AuthPage() {
                       className="w-full"
                       disabled={loginMutation.isPending}
                     >
-                      {loginMutation.isPending ? "Logging in..." : "Login"}
+                      {loginMutation.isPending ? "Logging in..." : (
+                        <>
+                          <LogIn className="mr-2 h-4 w-4" />
+                          Login
+                        </>
+                      )}
                     </Button>
                   </form>
                 </Form>

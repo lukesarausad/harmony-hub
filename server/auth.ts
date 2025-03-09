@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as SpotifyStrategy } from "passport-spotify";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -41,6 +42,7 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Local Strategy
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       const user = await storage.getUserByUsername(username);
@@ -52,12 +54,54 @@ export function setupAuth(app: Express) {
     }),
   );
 
+  // Spotify Strategy
+  passport.use(
+    new SpotifyStrategy(
+      {
+        clientID: process.env.SPOTIFY_CLIENT_ID!,
+        clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
+        callbackURL: "http://localhost:5000/api/auth/spotify/callback",
+      },
+      async (accessToken, refreshToken, expires_in, profile, done) => {
+        try {
+          // Check if we already have a user with this Spotify ID
+          const users = await storage.getAllUsers();
+          const existingUser = users.find(u => u.spotifyId === profile.id);
+
+          if (existingUser) {
+            // Update tokens
+            const updatedUser = await storage.updateUser(existingUser.id, {
+              spotifyToken: accessToken,
+              spotifyRefreshToken: refreshToken,
+            });
+            return done(null, updatedUser);
+          }
+
+          // If no user is logged in, create a new user
+          if (!existingUser) {
+            const newUser = await storage.createUser({
+              username: profile.displayName || profile.id,
+              password: await hashPassword(randomBytes(16).toString("hex")),
+              spotifyId: profile.id,
+              spotifyToken: accessToken,
+              spotifyRefreshToken: refreshToken,
+            });
+            return done(null, newUser);
+          }
+        } catch (err) {
+          return done(err as Error);
+        }
+      }
+    )
+  );
+
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     const user = await storage.getUser(id);
     done(null, user);
   });
 
+  // Local auth routes
   app.post("/api/register", async (req, res, next) => {
     const existingUser = await storage.getUserByUsername(req.body.username);
     if (existingUser) {
@@ -85,6 +129,19 @@ export function setupAuth(app: Express) {
       res.sendStatus(200);
     });
   });
+
+  // Spotify auth routes
+  app.get("/api/auth/spotify", passport.authenticate("spotify", {
+    scope: ["user-read-email", "playlist-read-private", "playlist-modify-public", "playlist-modify-private"]
+  }));
+
+  app.get(
+    "/api/auth/spotify/callback",
+    passport.authenticate("spotify", { failureRedirect: "/auth" }),
+    (req, res) => {
+      res.redirect("/");
+    }
+  );
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);

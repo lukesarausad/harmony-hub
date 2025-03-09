@@ -7,22 +7,24 @@ const MemoryStore = createMemoryStore(session);
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
+  getAllUsers(): Promise<User[]>;
+  createUser(user: InsertUser & Partial<Pick<User, "spotifyId" | "spotifyToken" | "spotifyRefreshToken">>): Promise<User>;
+  updateUser(id: number, updates: Partial<User>): Promise<User>;
+
   createPlaylist(playlist: Omit<Playlist, "id">): Promise<Playlist>;
   getPlaylist(id: number): Promise<Playlist | undefined>;
   getUserPlaylists(userId: number): Promise<Playlist[]>;
   updatePlaylist(id: number, updates: Partial<Playlist>): Promise<Playlist>;
   deletePlaylist(id: number): Promise<void>;
-  
+
   createComment(comment: Omit<Comment, "id" | "createdAt">): Promise<Comment>;
   getPlaylistComments(playlistId: number): Promise<Comment[]>;
-  
+
   followUser(followerId: number, followedId: number): Promise<Follow>;
   unfollowUser(followerId: number, followedId: number): Promise<void>;
   getFollowers(userId: number): Promise<User[]>;
   getFollowing(userId: number): Promise<User[]>;
-  
+
   sessionStore: session.Store;
 }
 
@@ -55,11 +57,24 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async createUser(insertUser: InsertUser & Partial<Pick<User, "spotifyId" | "spotifyToken" | "spotifyRefreshToken">>): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id } as User;
+    const user = { ...insertUser, id } as User;
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: number, updates: Partial<User>): Promise<User> {
+    const user = await this.getUser(id);
+    if (!user) throw new Error("User not found");
+
+    const updated = { ...user, ...updates };
+    this.users.set(id, updated);
+    return updated;
   }
 
   async createPlaylist(playlist: Omit<Playlist, "id">): Promise<Playlist> {
@@ -82,7 +97,7 @@ export class MemStorage implements IStorage {
   async updatePlaylist(id: number, updates: Partial<Playlist>): Promise<Playlist> {
     const playlist = await this.getPlaylist(id);
     if (!playlist) throw new Error("Playlist not found");
-    
+
     const updated = { ...playlist, ...updates };
     this.playlists.set(id, updated);
     return updated;
@@ -129,7 +144,7 @@ export class MemStorage implements IStorage {
     const followerIds = Array.from(this.follows.values())
       .filter((f) => f.followedId === userId)
       .map((f) => f.followerId);
-    
+
     return Array.from(this.users.values())
       .filter((user) => followerIds.includes(user.id));
   }
@@ -138,7 +153,7 @@ export class MemStorage implements IStorage {
     const followingIds = Array.from(this.follows.values())
       .filter((f) => f.followerId === userId)
       .map((f) => f.followedId);
-    
+
     return Array.from(this.users.values())
       .filter((user) => followingIds.includes(user.id));
   }
