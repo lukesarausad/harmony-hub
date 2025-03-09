@@ -51,10 +51,10 @@ export function setupAuth(app: Express) {
     }
   };
 
-  app.use(cors({
-    origin: 'https://harmonyhub.sarausad.repl.co',
-    credentials: true
-  }));
+  // app.use(cors({
+  //   origin: 'https://harmonyhub.sarausad.repl.co',
+  //   credentials: true
+  // }));
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
