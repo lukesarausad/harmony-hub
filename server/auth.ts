@@ -60,9 +60,7 @@ export function setupAuth(app: Express) {
       {
         clientID: process.env.SPOTIFY_CLIENT_ID!,
         clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-        callbackURL: process.env.REPL_SLUG
-          ? `https://${process.env.REPL_SLUG}.replit.dev/api/auth/spotify/callback`
-          : "http://localhost:5000/api/auth/spotify/callback",
+        callbackURL: "https://harmonyhub.sarausad.repl.co/api/auth/spotify/callback",
       },
       async (accessToken, refreshToken, expires_in, profile, done) => {
         try {
